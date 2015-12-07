@@ -522,3 +522,39 @@ function phila_filter_notices( $query ) {
     $query->set( 'tax_query', $taxquery );
   }
 }
+
+add_action( 'p2p_init', 'phila_gov_page_connector' );
+
+function phila_gov_page_connector() {
+  p2p_register_connection_type( array(
+    'name' => 'parent_to_children',
+    'from' => 'page',
+    'to' => 'page',
+    'cardinality' => 'many-to-many',
+    'title' => array( 'from' => 'Select Another Parent' ),
+    'admin_box' => 'from',
+    'admin_column' => 'from',
+    'from_labels' => array(
+      'column_title' => 'Alternate Parents',
+    ),
+  ) );
+}
+
+add_filter( 'p2p_connectable_args', 'phila_gov_connectable_results_per_page', 10, 3 );
+
+function phila_gov_connectable_results_per_page( $args, $ctype, $post_id ) {
+  $args['p2p:per_page'] = 7;
+
+  return $args;
+}
+
+add_filter( 'p2p_candidate_title', 'append_date_to_candidate_title', 10, 3 );
+
+function append_date_to_candidate_title( $title, $post, $ctype ) {
+
+  if ( 'parent_to_children' == $ctype->name && 'page' == $post->post_type ) {
+      $title .= " (" . $post->post_parent . ")";
+  }
+
+  return $title;
+}
